@@ -136,8 +136,8 @@ int main()
 	boost::asio::io_service io_service;
 	std::string Test = "Hallo....";
 
-
 	Analyzer AnalogDataAnalyzer;
+
 
 	printf("ADC data: \n");
 
