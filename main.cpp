@@ -25,11 +25,30 @@
 #include <ctime>   // localtime
 #include <sstream> // stringstream
 #include <iomanip> // put_time
+#include <boost/chrono.hpp>
+#include <boost/asio/ip/detail/endpoint.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio.hpp>
+#include <string>
+#include <ctime>   // localtime
+#include <sstream> // stringstream
+#include <iomanip> // put_time
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/optional.hpp>
+#include <iostream>
+#include <sstream>
+#include <cstdlib>
+#include <thread>
+#include <boost/array.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 
+#pragma warning(disable : 4996)
 
 using namespace boost::chrono;
 using namespace boost::asio;
-
+using namespace std;
 
 
 constexpr auto DATA_UPDATE_PERIOD = 100;
@@ -80,73 +99,121 @@ const int ledPorts[] = {
 
 #define MAX_LED_CNT sizeof(ledPorts) / sizeof(ledPorts[0])
 
-//------------------------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------------------------
-//
-// system init
-//
-//------------------------------------------------------------------------------------------------------------
-int system_init(void)
-{
-	int i;
-
-	// GPIO Init(LED Port ALL Output)
-	for (i = 0; i < MAX_LED_CNT; i++)
-	{
-		pinMode(ledPorts[i], OUTPUT);
-	}
-
-	return  0;
-}
-
-/*std::string return_current_time_and_date()
-{
-	auto now = std::chrono::system_clock::now();
-	auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-	std::stringstream ss;
-	ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-	return ss.str();
-}
-*/
-
-void PrintTimestamp()
+long long PrintTimestamp()
 {
 	auto TimePoint = high_resolution_clock::now();
 	auto now = system_clock::now();
+	//auto in_time_t = system_clock::to_time_t(now);
 	auto in_time_t = system_clock::to_time_t(now);
 
 	milliseconds ms = duration_cast<milliseconds>(TimePoint.time_since_epoch());
 
 	seconds s = duration_cast<seconds>(ms);
-	std::time_t t = s.count();
-	std::size_t fractional_seconds = ms.count() % 1000;
+	time_t t = s.count();
+	size_t fractional_seconds = ms.count() % 1000;
 
-	//std::cout << put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-	//std::cout << std::ctime(&t) << std::endl;
-	//std::cout << fractional_seconds << std::endl;
+	cout << put_time(localtime(&in_time_t), "%Y-%m-%d %X:");
+	cout << fractional_seconds << endl;
+
+	auto TimestampFullms = (in_time_t * 1000) + fractional_seconds;
+
+	return(TimestampFullms);
 }
+
+struct TelegrammItems
+{
+	boost::property_tree::ptree TelegrammTree;
+	long long timestamp;
+	int  AnalogValue1;
+	int  AnalogValue2;
+	long SentCounter;
+};
+
+std::stringstream BuildTelegrammTree(TelegrammItems* pItems)
+{
+	std::stringstream Telegramm;
+
+	pItems->TelegrammTree.put("Timestamp", pItems->timestamp);
+	pItems->TelegrammTree.put("AnalogValue1", pItems->AnalogValue1);
+	pItems->TelegrammTree.put("AnalogValue2", pItems->AnalogValue2);
+	pItems->TelegrammTree.put("SentCounter", pItems->SentCounter);
+
+	boost::property_tree::json_parser::write_json(Telegramm, pItems->TelegrammTree);
+
+	return(Telegramm);
+}
+
+class UdpSender {
+
+private:
+	boost::asio::io_service io_service;
+	boost::asio::ip::udp::socket socket;
+	boost::asio::ip::udp::endpoint remote_endpoint;
+
+	void handle_send(boost::shared_ptr<std::string> /*message*/,
+		const boost::system::error_code& /*error*/,
+		std::size_t /*bytes_transferred*/)
+	{
+	}
+
+
+public:
+
+	UdpSender(const std::string& ip_address, const int port, const bool broadcast = false) : socket(io_service) {
+
+		// Open socket
+		socket.open(boost::asio::ip::udp::v4());
+
+		// I wouldn't recommend broadcasting unless you are
+		// in complete control of your subnet and know
+		// what's on it and how it will react
+		if (broadcast) {
+			boost::asio::socket_base::broadcast option(true);
+			socket.set_option(option);
+		}
+
+		// make endpoint
+		remote_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::make_address(ip_address.c_str()), port);
+	}
+
+
+
+	// Send a string to the preconfigured endpoint
+	// via the open socket.
+	void send(const std::string& message) {
+		boost::system::error_code ignored_error;
+		boost::shared_ptr<std::string> message_(
+			new std::string(message));
+
+		socket.async_send_to(boost::asio::buffer(*message_), remote_endpoint,
+			boost::bind(&UdpSender::handle_send, this, message_,
+				boost::asio::placeholders::error,
+				boost::asio::placeholders::bytes_transferred));
+
+
+	}
+
+	// Send some binary data to the preconfigured endpoint
+	// via the open socket.
+	void send(const unsigned char* data, const int len) {
+		boost::system::error_code ignored_error;
+		socket.send_to(boost::asio::buffer(data, len), remote_endpoint, 0, ignored_error);
+	}
+};
+
 
 
 int main()
 {
 	static int timer = 0;
 	static unsigned long LoopCounter = 0;
-
-	boost::asio::io_service io_service;
-	std::string Test = "Hallo....";
+	//auto now = system_clock::now();
+	auto TimeStamp = 0; //= system_clock::to_time_t(now);
 
 	Analyzer AnalogDataAnalyzer;
 
-
-	printf("ADC data: \n");
-
 	wiringPiSetup();
 
-	if (system_init() < 0)
-	{
-		fprintf(stderr, "%s: System Init failed\n", __func__);     return -1;
-	}
 
 	for (;;) 
 	{
@@ -163,13 +230,11 @@ int main()
 		// boardDataUpdate();
 		AnalogDataAnalyzer.VerifyRawValue(analogRead(PORT_ADC1), adcValue1);
 		AnalogDataAnalyzer.VerifyRawValue(analogRead(PORT_ADC2), adcValue2);
+		
+		TimeStamp = PrintTimestamp();
 
-		auto Timestamp = system_clock::now();
-		auto TimestampMs = time_point_cast<milliseconds>(Timestamp);
+		cout <<"Timestamp:" << TimeStamp << endl;
 
-
-		PrintTimestamp();
-		printf(" Timestamp = %u", TimestampMs);
 		printf(" Actual value ADC1: %u ", adcValue1);
 		printf(" Actual value ADC2: %u ", adcValue2);
 		printf(" Counter Value: %u", LoopCounter++ );
