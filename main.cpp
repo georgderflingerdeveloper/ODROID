@@ -19,20 +19,18 @@
 #include "Analyzing.h"
 #include "Analyzing.cpp"
 #include <ctime>
+//#include <boost/asio/ip/address.hpp>
+//#include <boost/asio/ip/impl/address.hpp>
+//#include <boost/asio/ip/impl/address.ipp>
 #include <boost/chrono.hpp>
 #include <boost/asio/ip/detail/endpoint.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/address.hpp>
 #include <ctime>   // localtime
 #include <sstream> // stringstream
 #include <iomanip> // put_time
-#include <boost/chrono.hpp>
-#include <boost/asio/ip/detail/endpoint.hpp>
-#include <boost/asio/io_service.hpp>
 #include <boost/asio.hpp>
 #include <string>
-#include <ctime>   // localtime
-#include <sstream> // stringstream
-#include <iomanip> // put_time
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/optional.hpp>
@@ -45,65 +43,22 @@
 #include <boost/shared_ptr.hpp>
 
 #pragma warning(disable : 4996)
-
 using namespace boost::chrono;
 using namespace boost::asio;
 using namespace std;
 
-
 constexpr auto DATA_UPDATE_PERIOD = 100;
 
-//------------------------------------------------------------------------------------------------------------
-//
-// ADC:
-//
-//------------------------------------------------------------------------------------------------------------
 constexpr auto PORT_ADC1 = 0;
 constexpr auto PORT_ADC2 = 1;
 
 static int adcValue1 = 0;
 static int adcValue2 = 0;
 
-
-
-
-//------------------------------------------------------------------------------------------------------------
-//
-// LED:
-//
-//------------------------------------------------------------------------------------------------------------
-static int ledPos = 0;
-
-const int ledPorts[] = {
-	24,
-	23,
-	22,
-	21,
-	14,
-	13,
-	12,
-	3,
-	2,
-	0,
-	7,
-
-	1,
-	4,
-	5,
-	6,
-	10,
-	11,
-	26,
-	27,
-};
-
-#define MAX_LED_CNT sizeof(ledPorts) / sizeof(ledPorts[0])
-
 long long PrintTimestamp()
 {
 	auto TimePoint = high_resolution_clock::now();
-	auto now = system_clock::now();
-	//auto in_time_t = system_clock::to_time_t(now);
+	auto now       = system_clock::now();
 	auto in_time_t = system_clock::to_time_t(now);
 
 	milliseconds ms = duration_cast<milliseconds>(TimePoint.time_since_epoch());
@@ -161,6 +116,7 @@ public:
 
 	UdpSender(const std::string& ip_address, const int port, const bool broadcast = false) : socket(io_service) {
 
+		boost::asio::ip::address Address_;
 		// Open socket
 		socket.open(boost::asio::ip::udp::v4());
 
@@ -173,7 +129,7 @@ public:
 		}
 
 		// make endpoint
-		remote_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::make_address(ip_address.c_str()), port);
+		remote_endpoint = boost::asio::ip::udp::endpoint(Address_.from_string(ip_address.c_str()), port);
 	}
 
 
@@ -201,19 +157,17 @@ public:
 	}
 };
 
-
-
 int main()
 {
 	static int timer = 0;
 	static unsigned long LoopCounter = 0;
-	//auto now = system_clock::now();
-	auto TimeStamp = 0; //= system_clock::to_time_t(now);
+	long long TimeStamp = 0; 
 
-	Analyzer AnalogDataAnalyzer;
+	Analyzer       AnalogDataAnalyzer;
+	TelegrammItems TeleItems;
+	UdpSender      Sender("127.0.0.1", 10000);
 
 	wiringPiSetup();
-
 
 	for (;;) 
 	{
@@ -226,23 +180,27 @@ int main()
 
 		timer = millis() + DATA_UPDATE_PERIOD;
 
-		// All Data update
-		// boardDataUpdate();
-		AnalogDataAnalyzer.VerifyRawValue(analogRead(PORT_ADC1), adcValue1);
-		AnalogDataAnalyzer.VerifyRawValue(analogRead(PORT_ADC2), adcValue2);
+		int AnalogRawValue1 = analogRead(PORT_ADC1);
+		int AnalogRawValue2 = analogRead(PORT_ADC2);
+
+		AnalogDataAnalyzer.VerifyRawValue(AnalogRawValue1, adcValue1);
+		AnalogDataAnalyzer.VerifyRawValue(AnalogRawValue2, adcValue2);
 		
 		TimeStamp = PrintTimestamp();
+	    TeleItems.AnalogValue1 = adcValue1;
+	    TeleItems.AnalogValue2 = adcValue2;
+	    TeleItems.SentCounter  = LoopCounter++;
+	    TeleItems.timestamp    = TimeStamp;
 
-		cout <<"Timestamp:" << TimeStamp << endl;
+		auto Telegramm = BuildTelegrammTree(&TeleItems).str();
 
+		Sender.send(Telegramm);
+
+		cout <<"Timestamp: " << TimeStamp;
 		printf(" Actual value ADC1: %u ", adcValue1);
 		printf(" Actual value ADC2: %u ", adcValue2);
-		printf(" Counter Value: %u", LoopCounter++ );
+		printf(" Counter Value: %u", LoopCounter );
 		printf("\n\r");
-		//
-		// build JSON telegramm
-
-		// send data via UDP
 	}
 
 	return 0;

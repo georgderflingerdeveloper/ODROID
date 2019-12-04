@@ -25,8 +25,9 @@ namespace boost {
 namespace asio {
 namespace ip {
 
+ 
 #if !defined(BOOST_ASIO_NO_DEPRECATED)
-
+ 
 inline address address::from_string(const char* str)
 {
   return boost::asio::ip::make_address(str);

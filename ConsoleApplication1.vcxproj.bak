@@ -48,21 +48,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <UseCompiler>true</UseCompiler>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <UseCompiler>true</UseCompiler>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <UseCompiler>true</UseCompiler>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -72,7 +69,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <UseCompiler>true</UseCompiler>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -91,20 +87,16 @@
       <LibraryDependencies>%(LibraryDependencies)</LibraryDependencies>
       <AdditionalOptions>
       </AdditionalOptions>
-      <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies) -lwiringPi -lwiringPiDev -lpthread -lcrypt -lrt -lboost_system -lboost_chrono  -lboost_date_time; </AdditionalDependencies>
+      <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies) -lwiringPi -lwiringPiDev -lpthread -lcrypt -lrt -lboost_system -lboost_chrono  -lboost_date_time; -lboost_address</AdditionalDependencies>
     </Link>
     <ClCompile>
       <CppLanguageStandard>c++17</CppLanguageStandard>
-      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip;C:\CPPODR;C:\CPPODR\ODROID\boost\asio\impl</AdditionalIncludeDirectories>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip;C:\CPPODR;C:\CPPODR\ODROID\boost\asio\impl</AdditionalIncludeDirectories>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies);-laddress</AdditionalDependencies>
@@ -112,9 +104,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip;C:\CPPODR;C:\CPPODR\ODROID\boost\asio\impl</AdditionalIncludeDirectories>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies);-laddress</AdditionalDependencies>
@@ -122,9 +112,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip;C:\CPPODR;C:\CPPODR\ODROID\boost\asio\impl</AdditionalIncludeDirectories>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\CPPODR\ODROID\boost;C:\CPPODR\ODROID;C:\CPPODR\ODROID\boost\asio\ip</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>$(StlAdditionalDependencies);%(Link.AdditionalDependencies);-laddress</AdditionalDependencies>

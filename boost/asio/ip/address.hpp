@@ -35,6 +35,7 @@ namespace boost {
 namespace asio {
 namespace ip {
 
+ 
 /// Implements version-independent IP addresses.
 /**
  * The boost::asio::ip::address class provides the ability to use either IP
@@ -185,6 +186,8 @@ private:
   boost::asio::ip::address_v6 ipv6_address_;
 };
 
+
+
 /// Create an address from an IPv4 address string in dotted decimal form,
 /// or from an IPv6 address in hexadecimal notation.
 /**
@@ -263,6 +266,7 @@ std::basic_ostream<Elem, Traits>& operator<<(
 #include <boost/asio/detail/pop_options.hpp>
 
 #include <boost/asio/ip/impl/address.hpp>
+
 #if defined(BOOST_ASIO_HEADER_ONLY)
 # include <boost/asio/ip/impl/address.ipp>
 #endif // defined(BOOST_ASIO_HEADER_ONLY)
