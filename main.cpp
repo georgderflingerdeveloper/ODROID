@@ -19,9 +19,6 @@
 #include "Analyzing.h"
 #include "Analyzing.cpp"
 #include <ctime>
-//#include <boost/asio/ip/address.hpp>
-//#include <boost/asio/ip/impl/address.hpp>
-//#include <boost/asio/ip/impl/address.ipp>
 #include <boost/chrono.hpp>
 #include <boost/asio/ip/detail/endpoint.hpp>
 #include <boost/asio/io_service.hpp>
@@ -43,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 
 #pragma warning(disable : 4996)
+
 using namespace boost::chrono;
 using namespace boost::asio;
 using namespace std;
@@ -132,8 +130,6 @@ public:
 		remote_endpoint = boost::asio::ip::udp::endpoint(Address_.from_string(ip_address.c_str()), port);
 	}
 
-
-
 	// Send a string to the preconfigured endpoint
 	// via the open socket.
 	void send(const std::string& message) {
@@ -187,6 +183,7 @@ int main()
 		AnalogDataAnalyzer.VerifyRawValue(AnalogRawValue2, adcValue2);
 		
 		TimeStamp = PrintTimestamp();
+
 	    TeleItems.AnalogValue1 = adcValue1;
 	    TeleItems.AnalogValue2 = adcValue2;
 	    TeleItems.SentCounter  = LoopCounter++;
